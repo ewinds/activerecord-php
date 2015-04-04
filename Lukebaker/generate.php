@@ -1,6 +1,7 @@
 <?php
+namespace Lukebaker;
 
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'ActiveRecord.php';
+// require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'ActiveRecord.php';
 
 $is_web_request = ($_SERVER['HTTP_HOST']) ? true : false;
 $stub_models_dir = dirname(dirname(__FILE__)) .DIRECTORY_SEPARATOR;
@@ -47,7 +48,6 @@ foreach ($tables as $table_row) {
   $gen_file = preg_replace('/{\$class_name}/', $class_name, $gen_file);
   $gen_file = preg_replace('/{\$primary_key}/', $primary_key, $gen_file);
   $gen_file = preg_replace('/{\$columns}/', implode(", ", $columns), $gen_file);
-  
+
   file_put_contents($generated_models_dir . $class_name . "Base.php", $gen_file);
 }
-?>

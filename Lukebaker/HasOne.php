@@ -1,18 +1,20 @@
 <?php
-class BelongsTo extends Association {
+namespace Lukebaker;
+
+class HasOne extends Association {
   function __construct(&$source, $dest, $options=null) {
     parent::__construct($source, $dest, $options);
-    if (!isset($options['foreign_key'])) {
-      $this->foreign_key = ActiveRecordInflector::foreign_key($this->dest_class);
-    }
   }
 
   function set($value, &$source) {
     if ($value instanceof $this->dest_class) {
-      if (!$value->is_new_record())
-        $source->{$this->foreign_key} = $value->{$value->get_primary_key()};
-      else
-        $source->{$this->foreign_key} = null;
+      if (!$source->is_new_record()) {
+        $value->{$this->foreign_key} = $source->{$source->get_primary_key()};
+        $value->save();
+      }
+      else {
+        $value->{$this->foreign_key} = null;
+      }
       $this->value = $value;
     }
     else {
@@ -21,24 +23,25 @@ class BelongsTo extends Association {
   }
 
   function get(&$source, $force=false) {
-    if ($this->value instanceof $this->dest_class && !$force) {
-      return $this->value;
-    }
-    else {
+    if (!($this->value instanceof $this->dest_class) || $force) {
+      if ($source->is_new_record()) { return null; }
       $this->value = call_user_func_array(
           array($this->dest_class, 'find'),
-          array($source->{$this->foreign_key}) );
-      return $this->value;
+          array('first',
+            array('conditions' => "{$this->foreign_key} = {$source->{$source->get_primary_key()}}")
+          ));
     }
+    return $this->value;
   }
 
   function join() {
     $dest_table = ActiveRecordInflector::tableize($this->dest_class);
     $source_table = ActiveRecordInflector::tableize($this->source_class);
+    $source_inst = new $this->source_class;
     $dest_inst = new $this->dest_class;
     $columns = $dest_inst->get_columns();
     $join = "LEFT OUTER JOIN {$dest_table} ON "
-          . "$source_table.{$this->foreign_key} = $dest_table.".$dest_inst->get_primary_key();
+          . "$source_table.".$source_inst->get_primary_key() ." = $dest_table.{$this->foreign_key}";
     return array( array($dest_table => $columns), $join);
   }
   function populate_from_find($attributes) {
@@ -53,4 +56,3 @@ class BelongsTo extends Association {
   }
 
 }
-?>

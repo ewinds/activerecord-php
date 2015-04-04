@@ -1,8 +1,8 @@
-<?php
+<?php namespace Lukebaker\Adapter;
 
 class MySQLAdapter implements DatabaseAdapter {
 
-  static function get_dbh($host="localhost", $db=null, $user=null, $password=null, $driver="mysql") {
+  static function get_dbh($host="localhost", $port="3306", $db=null, $user=null, $password=null, $driver="mysql") {
     $dbh = mysql_connect($host, $user, $password);
     if (!$dbh)
       throw new Exception("Could not connect to database server: ".mysql_error());
@@ -36,5 +36,3 @@ class MySQLAdapter implements DatabaseAdapter {
       return mysql_insert_id($resource);
   }
 }
-
-?>

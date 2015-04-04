@@ -12,4 +12,3 @@ class {$class_name}Base extends ActiveRecord {
     return parent::find(__CLASS__, $id, $options);
   }
 }
-?>

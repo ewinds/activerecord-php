@@ -1,4 +1,6 @@
 <?php
+namespace Lukebaker;
+
 class HasMany extends Association {
   function __construct(&$source, $dest, $options=null) {
     parent::__construct($source, $dest, $options);
@@ -47,7 +49,7 @@ class HasMany extends Association {
     if (!is_array($this->value) || $force) {
       if ($source->is_new_record()) {
         $this->value = array();
-        return $this->value; 
+        return $this->value;
       }
       try {
         if (!isset($this->options['through']) || !$this->options['through']) {
@@ -182,4 +184,3 @@ class HasMany extends Association {
   }
 
 }
-?>

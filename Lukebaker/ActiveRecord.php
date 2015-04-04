@@ -1,12 +1,6 @@
 <?php
-if (!class_exists('ActiveRecordInflector'))
-  require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'inflector.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Association.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'BelongsTo.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HasMany.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'HasOne.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'config.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'db_adapters' .DIRECTORY_SEPARATOR . AR_ADAPTER.'.php';
+namespace Lukebaker;
+
 class ActiveRecord {
 
   protected $columns       = array();
@@ -26,7 +20,7 @@ class ActiveRecord {
     /* setup associations */
     foreach ($this->assoc_types as $type) {
       if (isset($this->$type)) {
-        $class_name = ActiveRecordInflector::classify($type);
+        $class_name = __NAMESPACE__.'\\'.ActiveRecordInflector::classify($type);
         foreach ($this->$type as $assoc) {
           $assoc = self::decode_if_json($assoc);
           /* handle association sent in as array with options */
@@ -135,43 +129,47 @@ class ActiveRecord {
       if the Json::decode fails, we return the original value
   */
   static function decode_if_json($json) {
-    require_once dirname(__FILE__) .DIRECTORY_SEPARATOR. 'Zend' .DIRECTORY_SEPARATOR. 'Json.php';
+    // require_once dirname(__FILE__) .DIRECTORY_SEPARATOR. 'Zend' .DIRECTORY_SEPARATOR. 'Json.php';
     if (is_string($json) && preg_match('/^\s*[\{\[]/', $json) != 0) {
       try {
-        $json = Zend_Json::decode($json);
-      } catch (Zend_Json_Exception $e) { }
+        $json = \Zend\Json::decode($json);
+      } catch (\Zend\Json\Exception\RuntimeException $e) { }
     }
     return $json;
   }
 
-  /* 
+  /*
      DB specific stuff
   */
   static function &get_dbh() {
     if (!self::$dbh) {
-      self::$dbh = call_user_func_array(array(AR_ADAPTER."Adapter", __FUNCTION__),
-        array(AR_HOST, AR_PORT, AR_DB, AR_USER, AR_PASS, AR_DRIVER));
+      $db_config = Manager::getConfig();
+      self::$dbh = call_user_func_array(array(__NAMESPACE__.'\Adapter\\'.$db_config['AR_ADAPTER']."Adapter", __FUNCTION__),
+        array($db_config['AR_HOST'], $db_config['AR_PORT'], $db_config['AR_DB'], $db_config['AR_USER'], $db_config['AR_PASS'], $db_config['AR_DRIVER']));
     }
     return self::$dbh;
   }
 
   static function query($query) {
     $dbh =& self::get_dbh();
+    $db_config = Manager::getConfig();
     #var_dump($query);
     self::$query_count++;
-    return call_user_func_array(array(AR_ADAPTER."Adapter", __FUNCTION__),
+    return call_user_func_array(array(__NAMESPACE__.'\Adapter\\'.$db_config['AR_ADAPTER']."Adapter", __FUNCTION__),
         array($query, $dbh));
   }
-  
+
   static function quote($string, $type = null) {
     $dbh =& self::get_dbh();
-    return call_user_func_array(array(AR_ADAPTER.'Adapter', __FUNCTION__),
+    $db_config = Manager::getConfig();
+    return call_user_func_array(array(__NAMESPACE__.'\Adapter\\'.$db_config['AR_ADAPTER'].'Adapter', __FUNCTION__),
       array($string, $dbh, $type));
   }
 
   static function last_insert_id($resource = null) {
     $dbh =& self::get_dbh();
-    return call_user_func_array(array(AR_ADAPTER.'Adapter', __FUNCTION__), 
+    $db_config = Manager::getConfig();
+    return call_user_func_array(array(__NAMESPACE__.'\Adapter\\'.$db_config['AR_ADAPTER'].'Adapter', __FUNCTION__),
       array($dbh, $resource));
   }
 
@@ -469,20 +467,3 @@ class ActiveRecord {
 
 }
 
-class ActiveRecordException extends Exception {
-  const RecordNotFound    = 0;
-  const AttributeNotFound = 1;
-  const UnexpectedClass   = 2;
-  const ObjectFrozen      = 3;
-  const HasManyThroughCantAssociateNewRecords = 4;
-  const MethodOrAssocationNotFound = 5;
-}
-
-interface DatabaseAdapter {
-  static function get_dbh($host="localhost", $port="3306", $db=null, $user=null, $password=null, $driver="mysql");
-  static function query($query, $dbh=null);
-  static function quote($string, $dbh=null, $type=null);
-  static function last_insert_id($dbh=null, $resource=null);
-}
-
-?>

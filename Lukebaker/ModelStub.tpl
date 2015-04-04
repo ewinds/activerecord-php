@@ -4,5 +4,3 @@ require_once dirname(__FILE__) .DIRECTORY_SEPARATOR. 'generated_models' .DIRECTO
 class {$class_name} extends {$class_name}Base {
 
 }
-
-?>

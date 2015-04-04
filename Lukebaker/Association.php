@@ -1,10 +1,12 @@
 <?php
+namespace Lukebaker;
+
 class Association {
   protected $dest_class;
   protected $source_class;
   protected $value;
   protected $options;
-  
+
   function __construct($source, $dest, $options=null) {
     $this->source_class = get_class($source);
 
@@ -21,7 +23,7 @@ class Association {
     else {
       $this->foreign_key = ActiveRecordInflector::foreign_key($this->source_class);
     }
-    
+
     $this->options = $options;
   }
 
@@ -44,7 +46,5 @@ class Association {
       }
     }
   }
-
 }
 
-?>
