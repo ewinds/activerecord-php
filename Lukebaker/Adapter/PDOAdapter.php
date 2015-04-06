@@ -3,7 +3,7 @@
 class PDOAdapter implements DatabaseAdapter {
 
   static function get_dbh($host="localhost", $port="3306", $db="", $user="", $password="", $driver="mysql") {
-    $dbh = new \PDO("$driver:host=$host;dbname=$db", $user, $password);
+    $dbh = new \PDO("$driver:host=$host;port=$port;dbname=$db;charset=UTF8", $user, $password);
     $dbh->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     return $dbh;
   }
