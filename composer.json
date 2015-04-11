@@ -1,7 +1,7 @@
 {
   "name": "lukebaker/activerecord-php",
   "description": "An implementation of ActiveRecord in PHP.",
-  "version": "0.3.0",
+  "version": "v0.4",
   "keywords": ["activerecord"],
   "license": "MIT",
   "homepage": "http://code.lukebaker.org/activerecord-php",
